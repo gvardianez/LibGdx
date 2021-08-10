@@ -1,68 +1,64 @@
 package com.mygdx.game.screen;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.game.base.BaseScreen;
+import com.mygdx.game.math.Rect;
+import com.mygdx.game.sprite.Background;
+import com.mygdx.game.sprite.Logo;
 
 public class MenuScreen extends BaseScreen {
 
-    private Texture baseImg;
+    private Texture bg;
+    private Background background;
+    private Texture lg;
+    private Logo logo;
     private Vector2 pos;
-    private Vector2 direction;
-    private Vector2 posEnd;
-    private Vector2 speed;
-    private Vector2 needDistance;
-    private Vector2 traveledDistance;
 
     @Override
     public void show() {
         super.show();
-        baseImg = new Texture("badlogic.jpg");
+        bg = new Texture("textures/bg.png");
+        background = new Background(bg);
+        lg = new Texture("badlogic.jpg");
+        logo = new Logo(lg);
         pos = new Vector2();
-        direction = new Vector2();
-        posEnd = new Vector2();
-        speed = new Vector2();
-        needDistance = new Vector2();
-        traveledDistance = new Vector2();
+    }
+
+    @Override
+    public void resize(Rect worldBounds) {
+        background.resize(worldBounds);
+        logo.resize(worldBounds);
     }
 
     @Override
     public void render(float delta) {
         super.render(delta);
-        batch.begin();
-        batch.draw(baseImg, pos.x, pos.y);
-        batch.end();
-        move();
-    }
-
-    private void move() {
-        direction = posEnd.cpy().sub(pos);
-        speed = direction.nor().scl(5);
-        traveledDistance.add(speed);
-        if (traveledDistance.len()>needDistance.len()){
-            pos.set(posEnd.x,posEnd.y);
-            direction.set(0, 0);}
-        pos.add(speed);
+        update(delta);
+        draw();
     }
 
     @Override
     public void dispose() {
         super.dispose();
-        baseImg.dispose();
+        bg.dispose();
+        lg.dispose();
+    }
+
+    private void update(float delta) {
+        logo.update(delta);
+    }
+
+    private void draw() {
+        batch.begin();
+        background.draw(batch);
+        logo.draw(batch);
+        batch.end();
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        posEnd.set(screenX, Gdx.graphics.getHeight() - screenY);
-        needDistance = posEnd.cpy().sub(pos);
-        traveledDistance.set(0,0);
-        return super.touchDown(screenX, screenY, pointer, button);
+    public boolean touchDown(Vector2 touch, int pointer, int button) {
+        logo.touchDown(touch, pointer, button);
+        return false;
     }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return super.touchDragged(screenX, screenY, pointer);
-    }
-
 }
