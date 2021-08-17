@@ -1,6 +1,7 @@
 package com.mygdx.game.sprite;
 
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -12,6 +13,7 @@ public class MainShip extends Sprite {
     private static final float HEIGHT = 0.15f;
     private static final float BOTTOM_MARGIN = 0.05f;
     private static final int INVALID_POINTER = -1;
+    private static final float RELOAD_INTERVAL = 0.25f;
     private final Vector2 v0 = new Vector2(0.5f, 0);
     private final Vector2 v = new Vector2();
     private boolean pressedLeft;
@@ -25,22 +27,31 @@ public class MainShip extends Sprite {
     private Vector2 bulletPos;
     private float bulletHeight;
     private int bulletDamage;
+    private float reloadInterval;
+    private float reloadTimer;
+    private Sound bulletSound;
 
-
-    public MainShip(TextureAtlas atlas, BulletPool bulletPool) {
+    public MainShip(TextureAtlas atlas, BulletPool bulletPool, Sound bulletSound) {
         super(atlas.findRegion("main_ship"), 1, 2, 2);
         this.bulletPool = bulletPool;
-        this.bulletV = new Vector2(0,0.5f);
+        this.bulletV = new Vector2(0, 0.5f);
         this.bulletPos = new Vector2();
+        this.bulletSound = bulletSound;
         bulletRegion = atlas.findRegion("bulletMainShip");
         bulletHeight = 0.01f;
         bulletDamage = 1;
+        reloadInterval = RELOAD_INTERVAL;
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
         pos.mulAdd(v, delta);
+        reloadTimer += delta;
+        if (reloadTimer >= reloadInterval){
+            reloadTimer = 0f;
+            shoot();
+        }
         if (getRight() > worldBounds.getRight()) {
             setRight(worldBounds.getRight());
             stop();
@@ -133,9 +144,9 @@ public class MainShip extends Sprite {
                     stop();
                 }
                 break;
-                case Input.Keys.UP:
-                    shoot();
-                    break;
+            case Input.Keys.UP:
+                shoot();
+                break;
         }
         return false;
     }
@@ -152,10 +163,11 @@ public class MainShip extends Sprite {
         v.setZero();
     }
 
-    private void shoot(){
+    private void shoot() {
         Bullet bullet = bulletPool.obtain();
-        bulletPos.set(pos.x,pos.y + getHalfHeight());
-        bullet.set(this, bulletRegion, bulletPos, bulletV, bulletHeight, worldBounds,bulletDamage);
+        bulletPos.set(pos.x, pos.y + getHalfHeight());
+        bullet.set(this, bulletRegion, bulletPos, bulletV, bulletHeight, worldBounds, bulletDamage);
+        bulletSound.play();
     }
 
 }
